@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>springcloud-frame</artifactId>
+        <groupId>com.mate</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>frame-basics</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>nacos-explain</module>
+        <module>openfeign-explain</module>
+        <module>sentinel-explain</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <!--当前环境-->
+                <spring.active>local</spring.active>
+                <nacos.server-addr>localhost:8848</nacos.server-addr>
+                <config.namespace>application-config-namespace-01</config.namespace>
+                <config.group>DEFAULT_GROUP</config.group>
+                <config.server-addr>localhost:8848</config.server-addr>
+                <sentinel.port>8719</sentinel.port>
+                <sentinel.dashboard>localhost:8088</sentinel.dashboard>
+            </properties>
+            <!-- 不显式指定环境时, 会取 activeByDefault true 的环境变量,
+            需要注意的是: 没指定 activeByDefault true 的其他相同 profile id 的 properties 是不会生效的-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <spring.active>dev</spring.active>
+                <config.server-addr>127.0.0.1:8848</config.server-addr>
+                <config.namespace></config.namespace>
+                <config.group>DEFAULT_GROUP</config.group>
+                <discovery.server-addr>127.0.0.1:8848</discovery.server-addr>
+                <sentinel.port>8719</sentinel.port>
+                <sentinel.dashboard>127.0.0.1:8080</sentinel.dashboard>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.active>prod</spring.active>
+                <config.server-addr>172.26.85.32:8848</config.server-addr>
+                <config.namespace>568b8eaa-f25d-4f2a-8c87-83dcb4caa955</config.namespace>
+                <config.group>DEFAULT_GROUP</config.group>
+                <discovery.server-addr>172.26.85.32:8848</discovery.server-addr>
+                <sentinel.port>8719</sentinel.port>
+                <sentinel.dashboard>localhost:8080</sentinel.dashboard>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <!--1.扫描资源配置文件，使设置生效-->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*.yml</include>
+                    <include>application-${spring.active}.yml</include>
+                    <include>*.properties</include>
+                    <include>application-${spring.active}.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
+
+</project>

@@ -1,0 +1,6 @@
+
+1.pom引入依赖
+2.在application里有openFeign的一些用法，可以不用
+3.创建一个openFeign接口（），使用openFeign注解
+4.controller调用（openFeign具有负载均衡，
+当接口提供方有两个端口《可以在idea里vm-options 参数里设置:-Dserver.port=10102 ，然后再启动一个 》），调用时会负载均衡

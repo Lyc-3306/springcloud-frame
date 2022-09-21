@@ -1,0 +1,78 @@
+本项目使用nacos，nacos持久化，nacos作为config配置中心，nginx集群说明
+
+1.下载nacos https://github.com/alibaba/nacos/releases  解压安装
+2.nacos持久化
+数据库下新建nacos数据库
+复制 \nacos-server-1.4.2\nacos\conf\nacos-mysql.sql 里的sql，去nacos数据库下执行初始化数据库。
+修改\nacos-server-1.4.2\nacos\conf目录下application.properties配置数据源
+spring.datasource.platform=mysql
+db.num=1
+db.url.0=jdbc:mysql://localhost:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC
+db.user.0=root
+db.password.0=abc.123
+
+3.双击 startup.cmd运行文件即开启nacos
+4.访问nacos的web服务管理界面：http://localhost:8848/nacos/
+用户名 和 密码都是nacos
+5.代码开发引入依赖及application配置文件配置地址。启动项目后nacos页面服务列表出现对应服务
+
+6.使用nacos作为配置中心，从nacos获取配置
+修改application改为bootstrap，同时pom里引入对应查询bootstrap配置文件的依赖
+bootstrap配置nacos存储的位置
+启动项目，访问路径:http://localhost:10101/nacos-explain/demo  调用成功
+
+7.使用nginx实现高可用
+7.1如我有三个nacos节点，复制三份nacos安装包，先修改conf里面的application.properties配置文件信息。先统一配置数据库链接信息，然后依次配置server.port端口为8845，8846，8847。
+7.2然后找到三个nacos的conf里面的cluster.conf.example 复制一份，修改为cluster.conf，在里面配置集群信息（需要详细地址而不建议localhost）
+localhsot:8845
+localhsot:8846
+localhsot:8847
+7.3设置startup.cmd里的参数：set MODE="cluster"   (cluster为集群模式，standalone为单机模式)
+依次启动三个nacos(startup.cmd)
+7.4下载安装Nginx
+7.5配置nginx conf配置文件
+    7.5.1 http {}里加入如下配置:
+    upstream  nacos-servers {
+        server localhsot:8845;
+        server localhsot:8846;
+        server localhsot:8847;
+    }
+    7.5.2 server{}里修改location配置为上面对应命名nacos-servers
+    location / {
+      proxy_pass http://nacos-servers/;
+    }
+    7.5.3  server{}里修改listen 端口号
+    listen       8848;
+    server_name  localhost;
+7.6 启动nginx
+注意不要直接双击nginx.exe，这样会导致修改配置后重启、停止nginx无效，需要手动关闭任务管理器内的所有nginx进程
+ 在nginx.exe目录，打开命令行工具，用命令 启动/关闭/重启nginx
+ start nginx : 启动nginx
+ tasklist /fi "imagename eq nginx.exe"  查看是否启动
+ nginx -s reload  ：修改配置后重新加载生效（修改配置后可使用这个）
+ nginx -s reopen  ：重新打开日志文件
+ nginx -t -c /path/to/nginx.conf 测试nginx配置文件是否正确
+       关闭nginx：
+ nginx -s stop  :快速停止nginx
+ nginx -s quit  ：完整有序的停止nginx
+ 强制删除naginx进程：taskkill /f /t /im nginx.exe
+
+7.7 输入地址：http://localhost:8848/nacos/index.html
+
+7.8启动项目，则在nacos可以看到对应服务
+建议在.idea文件下的workspace.xml里配置
+<component name="RunDashboard">
+	<option name="configurationTypes">
+	  <set>
+		<option value="SpringBootApplicationConfigurationType" />
+	  </set>
+	</option>
+  </component>
+方便启动时查看
+
+
+
+
+
+
+
